@@ -10,7 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
-import os
+from decouple import config
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -21,22 +21,23 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-e0%$e&1#h+c59#jac3y6ehku(gtg_8v3tov=+p7xde%9=^!-c$'
+SECRET_KEY = config("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = str(os.environ.get("DEBUG")).lower() == "true"
-print("DEBUG", DEBUG)
+# DEBUG = str(os.environ.get("DEBUG")).lower() == "true"
+DEBUG = config("DJANGO_DEBUG", cast=bool)
+print("DEBUG", DEBUG, type(DEBUG))
 
 
 ALLOWED_HOSTS = [
-  ".railway.app" 
+    ".railway.app"
 ]
 
 if DEBUG:
-  ALLOWED_HOSTS += [
-    "127.0.0.1",
-    "localhost"
-  ]
+    ALLOWED_HOSTS += [
+        "127.0.0.1",
+        "localhost"
+    ]
 
 # Application definition
 
@@ -91,6 +92,20 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
+}
+
+CONN_MAX_AGE = config("CONN_MAX_AGE", cast=int, default=30)
+DATABASE_URL = config("DATABASE_URL", cast=str, default=None)
+
+if DATABASE_URL is not None:
+    import dj_database_url
+    DATABASES = {
+    'default': dj_database_url.config(
+        default=DATABASE_URL,
+        conn_health_checks=True,
+        conn_max_age=CONN_MAX_AGE,
+        ssl_require=True),
+
 }
 
 
